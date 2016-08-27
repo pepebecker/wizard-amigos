@@ -1,0 +1,21 @@
+{
+  "name": "intro",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "watchify index.js -p [ browserify-livereload --host 127.0.0.1 --port 3000 ] -o bundle.js -dv",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Pepe Becker <mail@pepebecker.com>",
+  "license": "ISC",
+  "dependencies": {
+    "gl-matrix": "^2.3.2",
+    "regl": "^1.1.0",
+    "resl": "^1.0.2"
+  },
+  "devDependencies": {
+    "browserify-livereload": "^1.0.8",
+    "watchify": "^3.7.0"
+  }
+}
