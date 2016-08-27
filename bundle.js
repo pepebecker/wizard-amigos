@@ -158,7 +158,7 @@ getPixels("Logo.png", function (err, pixels) {
 
       regl.frame(function () {
         regl.clear({
-          color: [.3, .3, .3, 1],
+          color: [1, 1, 1, 1],
           depth: 1
         });
 
@@ -2220,7 +2220,7 @@ function Procedure() {
 function compileCwise(user_args) {
   //Create procedure
   var proc = new Procedure()
-  
+
   //Parse blocks
   proc.pre    = user_args.pre
   proc.body   = user_args.body
@@ -2275,12 +2275,12 @@ function compileCwise(user_args) {
       throw new Error("cwise: Unknown argument type " + proc_args[i])
     }
   }
-  
+
   //Make sure at least one array argument was specified
   if(proc.arrayArgs.length <= 0) {
     throw new Error("cwise: No array arguments specified")
   }
-  
+
   //Make sure arguments are correct
   if(proc.pre.args.length > proc_args.length) {
     throw new Error("cwise: Too many arguments in pre() block")
@@ -2294,10 +2294,10 @@ function compileCwise(user_args) {
 
   //Check debug flag
   proc.debug = !!user_args.printCode || !!user_args.debug
-  
+
   //Retrieve name
   proc.funcName = user_args.funcName || "cwise"
-  
+
   //Read in block size
   proc.blockSize = user_args.blockSize || 64
 
@@ -2543,7 +2543,7 @@ function generateCWiseOp(proc, typesig) {
     dtypes[i] = typesig[2*i]
     orders[i] = typesig[2*i+1]
   }
-  
+
   //Determine where block and loop indices start and end
   var blockBegin = [], blockEnd = [] // These indices are exposed as blocks
   var loopBegin = [], loopEnd = [] // These indices are iterated over
@@ -2573,7 +2573,7 @@ function generateCWiseOp(proc, typesig) {
   var arglist = ["SS"] // SS is the overall shape over which we iterate
   var code = ["'use strict'"]
   var vars = []
-  
+
   for(var j=0; j<dimension; ++j) {
     vars.push(["s", j, "=SS[", j, "]"].join("")) // The limits for each dimension.
   }
@@ -2581,11 +2581,11 @@ function generateCWiseOp(proc, typesig) {
     arglist.push("a"+i) // Actual data array
     arglist.push("t"+i) // Strides
     arglist.push("p"+i) // Offset in the array at which the data starts (also used for iterating over the data)
-    
+
     for(var j=0; j<dimension; ++j) { // Unpack the strides into vars for looping
       vars.push(["t",i,"p",j,"=t",i,"[",loopBegin[i]+j,"]"].join(""))
     }
-    
+
     for(var j=0; j<Math.abs(proc.arrayBlockIndices[i]); ++j) { // Unpack the strides into vars for block iteration
       vars.push(["t",i,"b",j,"=t",i,"[",blockBegin[i]+j,"]"].join(""))
     }
@@ -2611,7 +2611,7 @@ function generateCWiseOp(proc, typesig) {
       if(off_arg.offset[j] === 0) {
         continue
       } else if(off_arg.offset[j] === 1) {
-        init_string.push(["t", off_arg.array, "p", j].join(""))      
+        init_string.push(["t", off_arg.array, "p", j].join(""))
       } else {
         init_string.push([off_arg.offset[j], "*t", off_arg.array, "p", j].join(""))
       }
@@ -2632,7 +2632,7 @@ function generateCWiseOp(proc, typesig) {
   for(var i=0; i<proc.arrayArgs.length; ++i) {
     code.push("p"+i+"|=0")
   }
-  
+
   //Inline prelude
   if(proc.pre.body.length > 3) {
     code.push(processBlock(proc.pre, proc, dtypes))
@@ -2651,11 +2651,11 @@ function generateCWiseOp(proc, typesig) {
   if(proc.post.body.length > 3) {
     code.push(processBlock(proc.post, proc, dtypes))
   }
-  
+
   if(proc.debug) {
     console.log("-----Generated cwise routine for ", typesig, ":\n" + code.join("\n") + "\n----------")
   }
-  
+
   var loopName = [(proc.funcName||"unnamed"), "_cwise_loop_", orders[0].join("s"),"m",matched,typeSummary(dtypes)].join("")
   var f = new Function(["function ",loopName,"(", arglist.join(","),"){", code.join("\n"),"} return ", loopName].join(""))
   return f()
@@ -2694,7 +2694,7 @@ function createThunk(proc) {
   var code = ["'use strict'", "var CACHED={}"]
   var vars = []
   var thunkName = proc.funcName + "_cwise_thunk"
-  
+
   //Build thunk
   code.push(["return function ", thunkName, "(", proc.shimArgs.join(","), "){"].join(""))
   var typesig = []
@@ -2734,7 +2734,7 @@ function createThunk(proc) {
   vars.push(["type=[", string_typesig.join(","), "].join()"].join(""))
   vars.push("proc=CACHED[type]")
   code.push("var " + vars.join(","))
-  
+
   code.push(["if(!proc){",
              "CACHED[type]=proc=compile([", typesig.join(","), "])}",
              "return proc(", proc_args.join(","), ")}"].join(""))
@@ -2742,7 +2742,7 @@ function createThunk(proc) {
   if(proc.debug) {
     console.log("-----Generated thunk:\n" + code.join("\n") + "\n----------")
   }
-  
+
   //Compile thunk
   var thunk = new Function("compile", code.join("\n"))
   return thunk(compile.bind(undefined, proc))
@@ -3347,9 +3347,9 @@ glMatrix.toRadian = function(a){
 
 /**
  * Tests whether or not the arguments have approximately the same value, within an absolute
- * or relative tolerance of glMatrix.EPSILON (an absolute tolerance is used for values less 
+ * or relative tolerance of glMatrix.EPSILON (an absolute tolerance is used for values less
  * than or equal to 1.0, and a relative tolerance is used for larger values)
- * 
+ *
  * @param {Number} a The first number to test.
  * @param {Number} b The second number to test.
  * @returns {Boolean} True if the numbers are approximately equal, false otherwise.
@@ -3503,7 +3503,7 @@ mat2.transpose = function(out, a) {
         out[2] = a[1];
         out[3] = a[3];
     }
-    
+
     return out;
 };
 
@@ -3524,7 +3524,7 @@ mat2.invert = function(out, a) {
         return null;
     }
     det = 1.0 / det;
-    
+
     out[0] =  a3 * det;
     out[1] = -a1 * det;
     out[2] = -a2 * det;
@@ -3684,19 +3684,19 @@ mat2.frob = function (a) {
 
 /**
  * Returns L, D and U matrices (Lower triangular, Diagonal and Upper triangular) by factorizing the input matrix
- * @param {mat2} L the lower triangular matrix 
- * @param {mat2} D the diagonal matrix 
- * @param {mat2} U the upper triangular matrix 
+ * @param {mat2} L the lower triangular matrix
+ * @param {mat2} D the diagonal matrix
+ * @param {mat2} U the upper triangular matrix
  * @param {mat2} a the input matrix to factorize
  */
 
-mat2.LDU = function (L, D, U, a) { 
-    L[2] = a[2]/a[0]; 
-    U[0] = a[0]; 
-    U[1] = a[1]; 
-    U[3] = a[3] - L[2] * U[1]; 
-    return [L, D, U];       
-}; 
+mat2.LDU = function (L, D, U, a) {
+    L[2] = a[2]/a[0];
+    U[0] = a[0];
+    U[1] = a[1];
+    U[3] = a[3] - L[2] * U[1];
+    return [L, D, U];
+};
 
 /**
  * Adds two mat2's
@@ -3824,8 +3824,8 @@ var glMatrix = require("./common.js");
 /**
  * @class 2x3 Matrix
  * @name mat2d
- * 
- * @description 
+ *
+ * @description
  * A mat2d contains six elements defined as:
  * <pre>
  * [a, c, tx,
@@ -4145,7 +4145,7 @@ mat2d.fromTranslation = function(out, v) {
  * @returns {String} string representation of the matrix
  */
 mat2d.str = function (a) {
-    return 'mat2d(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' + 
+    return 'mat2d(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' +
                     a[3] + ', ' + a[4] + ', ' + a[5] + ')';
 };
 
@@ -4155,9 +4155,9 @@ mat2d.str = function (a) {
  * @param {mat2d} a the matrix to calculate Frobenius norm of
  * @returns {Number} Frobenius norm
  */
-mat2d.frob = function (a) { 
+mat2d.frob = function (a) {
     return(Math.sqrt(Math.pow(a[0], 2) + Math.pow(a[1], 2) + Math.pow(a[2], 2) + Math.pow(a[3], 2) + Math.pow(a[4], 2) + Math.pow(a[5], 2) + 1))
-}; 
+};
 
 /**
  * Adds two mat2d's
@@ -4480,7 +4480,7 @@ mat3.transpose = function(out, a) {
         out[7] = a[5];
         out[8] = a[8];
     }
-    
+
     return out;
 };
 
@@ -4503,8 +4503,8 @@ mat3.invert = function(out, a) {
         // Calculate the determinant
         det = a00 * b01 + a01 * b11 + a02 * b21;
 
-    if (!det) { 
-        return null; 
+    if (!det) {
+        return null;
     }
     det = 1.0 / det;
 
@@ -4847,8 +4847,8 @@ mat3.normalFromMat4 = function (out, a) {
         // Calculate the determinant
         det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
 
-    if (!det) { 
-        return null; 
+    if (!det) {
+        return null;
     }
     det = 1.0 / det;
 
@@ -4874,8 +4874,8 @@ mat3.normalFromMat4 = function (out, a) {
  * @returns {String} string representation of the matrix
  */
 mat3.str = function (a) {
-    return 'mat3(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' + 
-                    a[3] + ', ' + a[4] + ', ' + a[5] + ', ' + 
+    return 'mat3(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' +
+                    a[3] + ', ' + a[4] + ', ' + a[5] + ', ' +
                     a[6] + ', ' + a[7] + ', ' + a[8] + ')';
 };
 
@@ -4988,7 +4988,7 @@ mat3.multiplyScalarAndAdd = function(out, a, b, scale) {
  * @returns {Boolean} True if the matrices are equal, false otherwise.
  */
 mat3.exactEquals = function (a, b) {
-    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && 
+    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] &&
            a[3] === b[3] && a[4] === b[4] && a[5] === b[5] &&
            a[6] === b[6] && a[7] === b[7] && a[8] === b[8];
 };
@@ -6534,25 +6534,25 @@ mat4.getRotation = function (out, mat) {
   var trace = mat[0] + mat[5] + mat[10];
   var S = 0;
 
-  if (trace > 0) { 
+  if (trace > 0) {
     S = Math.sqrt(trace + 1.0) * 2;
     out[3] = 0.25 * S;
     out[0] = (mat[6] - mat[9]) / S;
-    out[1] = (mat[8] - mat[2]) / S; 
-    out[2] = (mat[1] - mat[4]) / S; 
-  } else if ((mat[0] > mat[5])&(mat[0] > mat[10])) { 
+    out[1] = (mat[8] - mat[2]) / S;
+    out[2] = (mat[1] - mat[4]) / S;
+  } else if ((mat[0] > mat[5])&(mat[0] > mat[10])) {
     S = Math.sqrt(1.0 + mat[0] - mat[5] - mat[10]) * 2;
     out[3] = (mat[6] - mat[9]) / S;
     out[0] = 0.25 * S;
-    out[1] = (mat[1] + mat[4]) / S; 
-    out[2] = (mat[8] + mat[2]) / S; 
-  } else if (mat[5] > mat[10]) { 
+    out[1] = (mat[1] + mat[4]) / S;
+    out[2] = (mat[8] + mat[2]) / S;
+  } else if (mat[5] > mat[10]) {
     S = Math.sqrt(1.0 + mat[5] - mat[0] - mat[10]) * 2;
     out[3] = (mat[8] - mat[2]) / S;
-    out[0] = (mat[1] + mat[4]) / S; 
+    out[0] = (mat[1] + mat[4]) / S;
     out[1] = 0.25 * S;
-    out[2] = (mat[6] + mat[9]) / S; 
-  } else { 
+    out[2] = (mat[6] + mat[9]) / S;
+  } else {
     S = Math.sqrt(1.0 + mat[10] - mat[0] - mat[5]) * 2;
     out[3] = (mat[1] - mat[4]) / S;
     out[0] = (mat[8] + mat[2]) / S;
@@ -7109,8 +7109,8 @@ mat4.multiplyScalarAndAdd = function(out, a, b, scale) {
  * @returns {Boolean} True if the matrices are equal, false otherwise.
  */
 mat4.exactEquals = function (a, b) {
-    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3] && 
-           a[4] === b[4] && a[5] === b[5] && a[6] === b[6] && a[7] === b[7] && 
+    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3] &&
+           a[4] === b[4] && a[5] === b[5] && a[6] === b[6] && a[7] === b[7] &&
            a[8] === b[8] && a[9] === b[9] && a[10] === b[10] && a[11] === b[11] &&
            a[12] === b[12] && a[13] === b[13] && a[14] === b[14] && a[15] === b[15];
 };
@@ -7124,13 +7124,13 @@ mat4.exactEquals = function (a, b) {
  */
 mat4.equals = function (a, b) {
     var a0  = a[0],  a1  = a[1],  a2  = a[2],  a3  = a[3],
-        a4  = a[4],  a5  = a[5],  a6  = a[6],  a7  = a[7], 
-        a8  = a[8],  a9  = a[9],  a10 = a[10], a11 = a[11], 
+        a4  = a[4],  a5  = a[5],  a6  = a[6],  a7  = a[7],
+        a8  = a[8],  a9  = a[9],  a10 = a[10], a11 = a[11],
         a12 = a[12], a13 = a[13], a14 = a[14], a15 = a[15];
 
     var b0  = b[0],  b1  = b[1],  b2  = b[2],  b3  = b[3],
-        b4  = b[4],  b5  = b[5],  b6  = b[6],  b7  = b[7], 
-        b8  = b[8],  b9  = b[9],  b10 = b[10], b11 = b[11], 
+        b4  = b[4],  b5  = b[5],  b6  = b[6],  b7  = b[7],
+        b8  = b[8],  b9  = b[9],  b10 = b[10], b11 = b[11],
         b12 = b[12], b13 = b[13], b14 = b[14], b15 = b[15];
 
     return (Math.abs(a0 - b0) <= glMatrix.EPSILON*Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
@@ -7435,7 +7435,7 @@ quat.scale = vec4.scale;
  * @returns {quat} out
  */
 quat.rotateX = function (out, a, rad) {
-    rad *= 0.5; 
+    rad *= 0.5;
 
     var ax = a[0], ay = a[1], az = a[2], aw = a[3],
         bx = Math.sin(rad), bw = Math.cos(rad);
@@ -7456,7 +7456,7 @@ quat.rotateX = function (out, a, rad) {
  * @returns {quat} out
  */
 quat.rotateY = function (out, a, rad) {
-    rad *= 0.5; 
+    rad *= 0.5;
 
     var ax = a[0], ay = a[1], az = a[2], aw = a[3],
         by = Math.sin(rad), bw = Math.cos(rad);
@@ -7477,7 +7477,7 @@ quat.rotateY = function (out, a, rad) {
  * @returns {quat} out
  */
 quat.rotateZ = function (out, a, rad) {
-    rad *= 0.5; 
+    rad *= 0.5;
 
     var ax = a[0], ay = a[1], az = a[2], aw = a[3],
         bz = Math.sin(rad), bw = Math.cos(rad);
@@ -7565,8 +7565,8 @@ quat.slerp = function (out, a, b, t) {
         sinom  = Math.sin(omega);
         scale0 = Math.sin((1.0 - t) * omega) / sinom;
         scale1 = Math.sin(t * omega) / sinom;
-    } else {        
-        // "from" and "to" quaternions are very close 
+    } else {
+        // "from" and "to" quaternions are very close
         //  ... so we can do a linear interpolation
         scale0 = 1.0 - t;
         scale1 = t;
@@ -7576,7 +7576,7 @@ quat.slerp = function (out, a, b, t) {
     out[1] = scale0 * ay + scale1 * by;
     out[2] = scale0 * az + scale1 * bz;
     out[3] = scale0 * aw + scale1 * bw;
-    
+
     return out;
 };
 
@@ -7594,12 +7594,12 @@ quat.slerp = function (out, a, b, t) {
 quat.sqlerp = (function () {
   var temp1 = quat.create();
   var temp2 = quat.create();
-  
+
   return function (out, a, b, c, d, t) {
     quat.slerp(temp1, a, d, t);
     quat.slerp(temp2, b, c, t);
     quat.slerp(out, temp1, temp2, 2 * t * (1 - t));
-    
+
     return out;
   };
 }());
@@ -7615,7 +7615,7 @@ quat.invert = function(out, a) {
     var a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3],
         dot = a0*a0 + a1*a1 + a2*a2 + a3*a3,
         invDot = dot ? 1.0/dot : 0;
-    
+
     // TODO: Would be faster to return [0,0,0,0] immediately if dot == 0
 
     out[0] = -a0*invDot;
@@ -7715,7 +7715,7 @@ quat.fromMat3 = function(out, m) {
           i = 2;
         var j = (i+1)%3;
         var k = (i+2)%3;
-        
+
         fRoot = Math.sqrt(m[i*3+i]-m[j*3+j]-m[k*3+k] + 1.0);
         out[i] = 0.5 * fRoot;
         fRoot = 0.5 / fRoot;
@@ -7723,7 +7723,7 @@ quat.fromMat3 = function(out, m) {
         out[j] = (m[j*3+i] + m[i*3+j]) * fRoot;
         out[k] = (m[k*3+i] + m[i*3+k]) * fRoot;
     }
-    
+
     return out;
 };
 
@@ -8261,7 +8261,7 @@ vec2.transformMat3 = function(out, a, m) {
  * @returns {vec2} out
  */
 vec2.transformMat4 = function(out, a, m) {
-    var x = a[0], 
+    var x = a[0],
         y = a[1];
     out[0] = m[0] * x + m[4] * y + m[12];
     out[1] = m[1] * x + m[5] * y + m[13];
@@ -8292,7 +8292,7 @@ vec2.forEach = (function() {
         if(!offset) {
             offset = 0;
         }
-        
+
         if(count) {
             l = Math.min((count * stride) + offset, a.length);
         } else {
@@ -8304,7 +8304,7 @@ vec2.forEach = (function() {
             fn(vec, vec, arg);
             a[i] = vec[0]; a[i+1] = vec[1];
         }
-        
+
         return a;
     };
 })();
@@ -8822,11 +8822,11 @@ vec3.hermite = function (out, a, b, c, d, t) {
       factor2 = factorTimes2 * (t - 2) + t,
       factor3 = factorTimes2 * (t - 1),
       factor4 = factorTimes2 * (3 - 2 * t);
-  
+
   out[0] = a[0] * factor1 + b[0] * factor2 + c[0] * factor3 + d[0] * factor4;
   out[1] = a[1] * factor1 + b[1] * factor2 + c[1] * factor3 + d[1] * factor4;
   out[2] = a[2] * factor1 + b[2] * factor2 + c[2] * factor3 + d[2] * factor4;
-  
+
   return out;
 };
 
@@ -8849,11 +8849,11 @@ vec3.bezier = function (out, a, b, c, d, t) {
       factor2 = 3 * t * inverseFactorTimesTwo,
       factor3 = 3 * factorTimes2 * inverseFactor,
       factor4 = factorTimes2 * t;
-  
+
   out[0] = a[0] * factor1 + b[0] * factor2 + c[0] * factor3 + d[0] * factor4;
   out[1] = a[1] * factor1 + b[1] * factor2 + c[1] * factor3 + d[1] * factor4;
   out[2] = a[2] * factor1 + b[2] * factor2 + c[2] * factor3 + d[2] * factor4;
-  
+
   return out;
 };
 
@@ -8981,17 +8981,17 @@ vec3.rotateY = function(out, a, b, c){
   	p[0] = a[0] - b[0];
   	p[1] = a[1] - b[1];
   	p[2] = a[2] - b[2];
-  
+
   	//perform rotation
   	r[0] = p[2]*Math.sin(c) + p[0]*Math.cos(c);
   	r[1] = p[1];
   	r[2] = p[2]*Math.cos(c) - p[0]*Math.sin(c);
-  
+
   	//translate to correct position
   	out[0] = r[0] + b[0];
   	out[1] = r[1] + b[1];
   	out[2] = r[2] + b[2];
-  
+
   	return out;
 };
 
@@ -9009,17 +9009,17 @@ vec3.rotateZ = function(out, a, b, c){
   	p[0] = a[0] - b[0];
   	p[1] = a[1] - b[1];
   	p[2] = a[2] - b[2];
-  
+
   	//perform rotation
   	r[0] = p[0]*Math.cos(c) - p[1]*Math.sin(c);
   	r[1] = p[0]*Math.sin(c) + p[1]*Math.cos(c);
   	r[2] = p[2];
-  
+
   	//translate to correct position
   	out[0] = r[0] + b[0];
   	out[1] = r[1] + b[1];
   	out[2] = r[2] + b[2];
-  
+
   	return out;
 };
 
@@ -9047,7 +9047,7 @@ vec3.forEach = (function() {
         if(!offset) {
             offset = 0;
         }
-        
+
         if(count) {
             l = Math.min((count * stride) + offset, a.length);
         } else {
@@ -9059,7 +9059,7 @@ vec3.forEach = (function() {
             fn(vec, vec, arg);
             a[i] = vec[0]; a[i+1] = vec[1]; a[i+2] = vec[2];
         }
-        
+
         return a;
     };
 })();
@@ -9071,20 +9071,20 @@ vec3.forEach = (function() {
  * @returns {Number} The angle in radians
  */
 vec3.angle = function(a, b) {
-   
+
     var tempA = vec3.fromValues(a[0], a[1], a[2]);
     var tempB = vec3.fromValues(b[0], b[1], b[2]);
- 
+
     vec3.normalize(tempA, tempA);
     vec3.normalize(tempB, tempB);
- 
+
     var cosine = vec3.dot(tempA, tempB);
 
     if(cosine > 1.0){
         return 0;
     } else {
         return Math.acos(cosine);
-    }     
+    }
 };
 
 /**
@@ -9680,7 +9680,7 @@ vec4.forEach = (function() {
         if(!offset) {
             offset = 0;
         }
-        
+
         if(count) {
             l = Math.min((count * stride) + offset, a.length);
         } else {
@@ -9692,7 +9692,7 @@ vec4.forEach = (function() {
             fn(vec, vec, arg);
             a[i] = vec[0]; a[i+1] = vec[1]; a[i+2] = vec[2]; a[i+3] = vec[3];
         }
-        
+
         return a;
     };
 })();
@@ -10913,7 +10913,7 @@ function GifReaderLZWOutputIndexStream(code_stream, p, output, output_length) {
   var cur = 0;
 
   var op = 0;  // Output pointer.
-  
+
   var subblock_size = code_stream[p++];
 
   // TODO(deanm): Would using a TypedArray be any faster?  At least it would
@@ -10996,7 +10996,7 @@ function GifReaderLZWOutputIndexStream(code_stream, p, output, output_length) {
     }
 
     var k = chase;
-    
+
     var op_end = op + chase_length + (chase_code !== code ? 1 : 0);
     if (op_end > output_length) {
       console.log("Warning, gif stream longer than expected.");
@@ -23804,18 +23804,18 @@ function config (name) {
     unpacked.index = 0;
     // array of lines separated by the newline
     var lines = objectData.split('\n');
-    
+
     var VERTEX_RE = /^v\s/;
     var NORMAL_RE = /^vn\s/;
     var TEXTURE_RE = /^vt\s/;
     var FACE_RE = /^f\s/;
     var WHITESPACE_RE = /\s+/;
-    
+
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim();
       var elements = line.split(WHITESPACE_RE);
       elements.shift();
-      
+
       if (VERTEX_RE.test(line)) {
         // if this is a vertex
         verts.push.apply(verts, elements);
