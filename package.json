@@ -1,11 +1,10 @@
 {
-  "name": "intro",
+  "name": "wizard-amigos",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "watchify index.js -p [ browserify-livereload --host 127.0.0.1 --port 3000 ] -o bundle.js -dv",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "watchify index.js -p [ browserify-livereload --host 127.0.0.1 --port 3000 ] -o bundle.js -dv"
   },
   "author": "Pepe Becker <mail@pepebecker.com>",
   "license": "ISC",

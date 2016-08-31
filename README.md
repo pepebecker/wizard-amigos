@@ -1,2 +1,3 @@
 # Wizard Amigos
-Wizard Amigos Coding School
+
+Logo for [Wizard Amigos Coding School](http://wizardamigos.com/)
