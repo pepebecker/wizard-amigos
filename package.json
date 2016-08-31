@@ -4,6 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "bundle": "browserify index.js > bundle.js",
+    "uglify": "uglifyjs -mc --screw-ie8 -- bundle.js > bundle.min.js",
+    "build": "npm run bundle && npm run uglify",
     "start": "watchify index.js -p [ browserify-livereload --host 127.0.0.1 --port 3000 ] -o bundle.js -dv"
   },
   "author": "Pepe Becker <mail@pepebecker.com>",
@@ -14,6 +17,8 @@
     "resl": "^1.0.2"
   },
   "devDependencies": {
+    "browserify": "^13.1",
+    "uglify-js": "^2.7.3",
     "browserify-livereload": "^1.0.8",
     "watchify": "^3.7.0"
   }
