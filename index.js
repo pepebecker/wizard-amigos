@@ -1,8 +1,8 @@
 const regl = require('regl')()
-const resl = require('resl')
 const glm = require('gl-matrix')
 const obj = require('webgl-obj-loader')
 const getPixels = require("get-pixels")
+const cubeObj = require('./cube.obj')
 
 const randomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -122,61 +122,48 @@ getPixels("Logo.png", (err, pixels) => {
     return
   }
 
-  resl({
-    manifest: {
-      cubeObj: {
-        type: 'text',
-        src: 'objects/cube.obj',
-        parser: (data) => new obj.Mesh(data)
+  window.cubes = []
+
+  let cubeObj = new obj.Mesh(cubeObj)
+  let imageWidth = pixels.shape[0]
+  let imageHeight = pixels.shape[1]
+
+  for (let y = 0; y < imageHeight; y++) {
+    for (let x = 0; x < imageWidth; x++) {
+      let offsetX = -imageWidth / 2
+      let offsetY = -imageHeight / 2
+      let r = pixels.get(x, y, 0)
+      let g = pixels.get(x, y, 1)
+      let b = pixels.get(x, y, 2)
+      let color = [r, g, b, 255]
+      if (!(r === 0 && g === 255 && b === 0)) {
+        let color = [r, g, b, 255]
+        let cube = new Cube(cubeObj, { x: x + offsetX, y: -y - offsetY, z: -40 + randomInt(-80, 80) }, color)
+        cubes.push(cube)
       }
-    },
-    onDone: ({cubeObj}) => {
-      window.cubes = []
+    }
+  }
 
-      var imageWidth = pixels.shape[0]
-      var imageHeight = pixels.shape[1]
+  console.log('Everything is loaded');
 
-      for (var y = 0; y < imageHeight; y++) {
-        for (var x = 0; x < imageWidth; x++) {
-          var offsetX = -imageWidth / 2
-          var offsetY = -imageHeight / 2
-          var r = pixels.get(x, y, 0)
-          var g = pixels.get(x, y, 1)
-          var b = pixels.get(x, y, 2)
-          var color = [r, g, b, 255]
-          if (!(r === 0 && g === 255 && b === 0)) {
-            // r = 255
-            // g = 0
-            // b = 0
-            var color = [r, g, b, 255]
-            var cube = new Cube(cubeObj, { x: x + offsetX, y: -y - offsetY, z: -40 + randomInt(-80, 80) }, color)
-            cubes.push(cube)
-          }
-        }
-      }
+  camera.position.z = 80
 
-      console.log('Everything is loaded');
+  regl.frame(() => {
+    regl.clear({
+      color: [1, 1, 1, 1],
+      depth: 1
+    })
 
-      camera.position.z = 80
-
-      regl.frame(() => {
-        regl.clear({
-          color: [.3, .3, .3, 1],
-          depth: 1
-        })
-
-        for (var i = 0; i < cubes.length; i++) {
-          cubes[i].update()
-          cubes[i].draw()
-        }
-      })
+    for (let i = 0; i < cubes.length; i++) {
+      cubes[i].update()
+      cubes[i].draw()
     }
   })
 })
 
 document.onmousemove = function (e) {
-  var mouseX = (e.clientX / window.innerWidth) * 2 - 1
-  var mouseY = (e.clientY / window.innerHeight) * 2 - 1
+  let mouseX = (e.clientX / window.innerWidth) * 2 - 1
+  let mouseY = (e.clientY / window.innerHeight) * 2 - 1
   world.rotation.y = mouseX * 50
   world.rotation.x = mouseY * 50
 }
