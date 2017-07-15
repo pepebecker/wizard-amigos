@@ -1,40 +1,25 @@
 const regl = require('regl')()
 const glm = require('gl-matrix')
 const obj = require('webgl-obj-loader')
-const getPixels = require("get-pixels")
+
+const pixels = require('./pixels.json')
 const cubeObj = require('./cube.obj')
+const shader = require('./shader.glsl')
 
 const randomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-const shader = {
-  vertex: () => {
-    return `
-    precision mediump float;
-    attribute vec3 position;
-    uniform mat4 projection;
-    uniform mat4 view;
-    uniform mat4 transform;
-    void main () {
-      gl_Position = projection * view * transform * vec4(position, 1);
-    }`
-  },
-  fragment: () => {
-    return `precision mediump float;
-    uniform vec4 color;
-    void main () {
-      gl_FragColor = color / 255.0;
-    }`
-  }
+const getColor = (pixels, x, y, z) => {
+  return pixels.data[pixels.offset + pixels.stride[0] * x + pixels.stride[1] * y + pixels.stride[2] * z]
 }
 
 const getProjection = () => {
-  var matrix = new Float32Array(16)
-  var fovy = glm.glMatrix.toRadian(45)
-  var aspect = window.innerWidth / window.innerHeight
-  var near = 0.1
-  var far = 1000.0
+  const matrix = new Float32Array(16)
+  const fovy = glm.glMatrix.toRadian(45)
+  const aspect = window.innerWidth / window.innerHeight
+  const near = 0.1
+  const far = 1000.0
   glm.mat4.perspective(matrix, fovy, aspect, near, far)
   return matrix
 }
@@ -50,7 +35,7 @@ const world = {
 }
 
 const getView = () => {
-  var matrix = new Float32Array(16)
+  const matrix = new Float32Array(16)
   glm.mat4.identity(matrix)
   glm.mat4.rotate(matrix, matrix, glm.glMatrix.toRadian(camera.rotation.x), [1, 0, 0])
   glm.mat4.rotate(matrix, matrix, glm.glMatrix.toRadian(camera.rotation.y), [0, 1, 0])
@@ -68,11 +53,11 @@ function Cube (model, position, color) {
 }
 
 Cube.prototype = {
-  getPosition: function() {
+  getPosition: function () {
     return this.position
   },
-  getTransform: function() {
-    var matrix = new Float32Array(16)
+  getTransform: function () {
+    const matrix = new Float32Array(16)
     glm.mat4.identity(matrix)
     glm.mat4.rotate(matrix, matrix, glm.glMatrix.toRadian(world.rotation.x), [1, 0, 0])
     glm.mat4.rotate(matrix, matrix, glm.glMatrix.toRadian(world.rotation.y), [0, 1, 0])
@@ -81,7 +66,7 @@ Cube.prototype = {
     glm.mat4.scale(matrix, matrix, [1, 1, 1])
     return matrix
   },
-  update: function() {
+  update: function () {
     this.position.x -= (this.position.x - this.destination.x) * 0.1
     this.position.y -= (this.position.y - this.destination.y) * 0.1
     this.position.z -= (this.position.z - this.destination.z) * 0.1
@@ -91,7 +76,7 @@ Cube.prototype = {
     vert: shader.vertex,
 
     attributes: {
-      position: function() {
+      position: function () {
         return this.model.vertices
       }
     },
@@ -116,41 +101,39 @@ Cube.prototype = {
   })
 }
 
-getPixels("Logo.png", (err, pixels) => {
-  if(err) {
-    console.log("Bad image path")
-    return
-  }
+start()
 
+function start () {
   window.cubes = []
 
-  let cubeObj = new obj.Mesh(cubeObj)
-  let imageWidth = pixels.shape[0]
-  let imageHeight = pixels.shape[1]
+  const cubeMesh = new obj.Mesh(cubeObj)
+  const imageWidth = pixels.shape[0]
+  const imageHeight = pixels.shape[1]
 
   for (let y = 0; y < imageHeight; y++) {
     for (let x = 0; x < imageWidth; x++) {
-      let offsetX = -imageWidth / 2
-      let offsetY = -imageHeight / 2
-      let r = pixels.get(x, y, 0)
-      let g = pixels.get(x, y, 1)
-      let b = pixels.get(x, y, 2)
-      let color = [r, g, b, 255]
-      if (!(r === 0 && g === 255 && b === 0)) {
-        let color = [r, g, b, 255]
-        let cube = new Cube(cubeObj, { x: x + offsetX, y: -y - offsetY, z: -40 + randomInt(-80, 80) }, color)
-        cubes.push(cube)
+      const offsetX = -imageWidth / 2
+      const offsetY = -imageHeight / 2
+      const r = getColor(pixels, x, y, 0)
+      const g = getColor(pixels, x, y, 1)
+      const b = getColor(pixels, x, y, 2)
+      const color = [r, g, b, 255]
+      if (r !== 0 || g !== 255 || b !== 0) {
+        const transform = {
+          x: x + offsetX,
+          y: -y - offsetY,
+          z: randomInt(-80, 80) - 40
+        }
+        cubes.push(new Cube(cubeMesh, transform, color))
       }
     }
   }
-
-  console.log('Everything is loaded');
 
   camera.position.z = 80
 
   regl.frame(() => {
     regl.clear({
-      color: [1, 1, 1, 1],
+      color: [1, 1, 1, 0],
       depth: 1
     })
 
@@ -159,11 +142,11 @@ getPixels("Logo.png", (err, pixels) => {
       cubes[i].draw()
     }
   })
-})
+}
 
-document.onmousemove = function (e) {
-  let mouseX = (e.clientX / window.innerWidth) * 2 - 1
-  let mouseY = (e.clientY / window.innerHeight) * 2 - 1
+document.onmousemove = (event) => {
+  const mouseX = (event.clientX / window.innerWidth) * 2 - 1
+  const mouseY = (event.clientY / window.innerHeight) * 2 - 1
   world.rotation.y = mouseX * 50
   world.rotation.x = mouseY * 50
 }

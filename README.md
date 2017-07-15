@@ -1,3 +1,2 @@
-# Wizard Amigos
-
-Logo for [Wizard Amigos Coding School](http://wizardamigos.com/)
+# Wizard Logo
+WebGL animation of the [Wizard Amigos](http://wizardamigos.com/) logo.
