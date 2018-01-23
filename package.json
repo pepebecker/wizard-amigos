@@ -56,11 +56,11 @@
   },
   "devDependencies": {
     "babel-preset-es2015": "^6.24.1",
-    "babelify": "^7.3.0",
+    "babelify": "^8.0.0",
     "budo": "^10.0.3",
     "stringify": "^5.1.0",
     "through2": "^2.0.3",
     "uglifyjs": "^2.4.11",
-    "webgl-obj-loader": "^0.1.1"
+    "webgl-obj-loader": "^1.0.0"
   }
 }
